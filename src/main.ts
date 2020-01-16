@@ -1,9 +1,25 @@
-import acorn_interpreter from "./acorn_interpreter";
-(window as any).acorn = acorn_interpreter;
+import * as code from "./code";
 
-const code = "var a=1; for(var i=0;i<4;i++){a*=i;} a;";
-const interpreter = new acorn_interpreter.Interpreter(code);
-
-for (let i = 0; i < 100; i++) {
-  console.log(interpreter.step());
+code.initData();
+let insertion = code.getCode(
+  `
+i = 1;
+while (i < length) {
+  j = i;
+  while (j > 0 && get(j - 1) > get(j)) {
+    swap(j, j - 1);
+    j--;
+  }
+  i++;
 }
+`,
+  true
+);
+
+console.log(code.data);
+for (let i = 0; i < 10000; i++) {
+  if (!code.step(insertion)) {
+    code.reset(insertion);
+  }
+}
+console.log(code.data);
