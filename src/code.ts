@@ -2,13 +2,24 @@ import acorn_interpreter from "./acorn_interpreter";
 (window as any).acorn = acorn_interpreter;
 import { range } from "./util";
 
-export const dataLength = 10;
+export const dataLength = 16;
 export let data: number[];
 
 export function initData() {
   data = range(dataLength).map(() =>
     Math.floor(Math.random() * dataLength * 2 + 1)
   );
+}
+
+export function countDataAscending(isDescending = false) {
+  const inv = isDescending ? -1 : 1;
+  let c = 0;
+  for (let i = 0; i < dataLength - 1; i++) {
+    if (data[i] * inv < data[i + 1] * inv) {
+      c++;
+    }
+  }
+  return c;
 }
 
 export type Code = {
@@ -34,6 +45,9 @@ export function reset(code: Code) {
         return -data[i];
       }
       function swapData(i: number, j: number) {
+        if (i < 0 || i >= dataLength || j < 0 || j >= dataLength) {
+          throw `invalid params: swap(${i}, ${j})`;
+        }
         const tmp = data[i];
         data[i] = data[j];
         data[j] = tmp;
