@@ -5,10 +5,10 @@ const quick = code.getCode(`
 function sort(l, h) {
   if (l < h) {
     i = l; j = h;
-    p = med3(get(i), 
-      get(Math.floor(i + (j - i) / 2)), 
+    p = med3(get(i),
+      get(Math.floor(i + (j - i) / 2)),
       get(j));
-    for (;;) {
+    while(true) {
       while (get(i) < p) i++;
       while (p < get(j)) j--;
       if (i >= j) break;
