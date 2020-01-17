@@ -3,7 +3,67 @@
   <head>
     <meta charset="utf-8" />
     <title>sort-war</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Inconsolata&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
     <script src="main.ts"></script>
   </head>
-  <body></body>
+  <body>
+    <div
+      class="mdc-layout-grid mdc-layout-grid--align-center"
+      style="width:900px;"
+    >
+      <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell">
+          <div class="mdc-text-field mdc-text-field--textarea">
+            <textarea
+              id="ascending-side-code"
+              class="mdc-text-field__input"
+              style="width: 280px; height:500px; font-family: 'Inconsolata', monospace; line-height: 15px;"
+            ></textarea>
+            <div class="mdc-notched-outline">
+              <div class="mdc-notched-outline__leading"></div>
+              <div class="mdc-notched-outline__notch">
+                <label for="textarea" class="mdc-floating-label"
+                  >Ascending side code</label
+                >
+              </div>
+              <div class="mdc-notched-outline__trailing"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mdc-layout-grid__cell">
+          <canvas id="canvas" style="width:280px;height:500px"></canvas>
+        </div>
+        <div class="mdc-layout-grid__cell">
+          <div class="mdc-text-field mdc-text-field--textarea">
+            <textarea
+              id="descending-side-code"
+              class="mdc-text-field__input"
+              style="width: 280px; height:500px; font-family: 'Inconsolata', monospace; line-height: 15px;"
+            ></textarea>
+            <div class="mdc-notched-outline">
+              <div class="mdc-notched-outline__leading"></div>
+              <div class="mdc-notched-outline__notch">
+                <label for="textarea" class="mdc-floating-label"
+                  >Descending side code</label
+                >
+              </div>
+              <div class="mdc-notched-outline__trailing"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button id="start" class="mdc-button">
+        <div class="mdc-button__ripple"></div>
+        <span class="mdc-button__label">Start</span>
+      </button>
+    </div>
+  </body>
 </html>
