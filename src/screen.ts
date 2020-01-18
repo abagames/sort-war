@@ -55,8 +55,21 @@ export function swapData(
   nt.sy = (Math.random() * 5 - 2) * ratio;
 }
 
-export function update() {
+export function clear() {
   context.clearRect(0, 0, size.x, size.y);
+}
+
+export function drawInstructions(x: number, instructions: string[]) {
+  setFontSize(10);
+  context.fillStyle = "#616161";
+  let y = 80;
+  instructions.forEach(inst => {
+    context.fillText(inst.substr(0, 16), x, y);
+    y += 15;
+  });
+}
+
+export function drawNumberBoxes() {
   setFontSize(20);
   let lps = [];
   let lc: string;

@@ -105,7 +105,7 @@ function update() {
       ascendingSwapping.ticks / swappingInterval,
       false
     );
-    screen.update();
+    drawScreen();
     ascendingSwapping.ticks--;
     return;
   }
@@ -116,7 +116,7 @@ function update() {
       descendingSwapping.ticks / swappingInterval,
       true
     );
-    screen.update();
+    drawScreen();
     descendingSwapping.ticks--;
     return;
   }
@@ -158,5 +158,12 @@ function update() {
     swappingInterval += (10 - swappingInterval) * 0.2;
   }
   screen.setData();
-  screen.update();
+  drawScreen();
+}
+
+function drawScreen() {
+  screen.clear();
+  screen.drawInstructions(5, ascendingCode.instructionHistory);
+  screen.drawInstructions(190, descendingCode.instructionHistory);
+  screen.drawNumberBoxes();
 }
