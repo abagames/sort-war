@@ -2,7 +2,7 @@ import * as code from "./code";
 import * as screen from "./screen";
 declare const mdc: any;
 
-const quickCode = `// quick
+const quickCode = `// QUICK
 function sort(l, h) {
   if (l < h) {
     i = l; j = h;
@@ -33,7 +33,7 @@ function med(x, y, z) {
 }
 sort(0, length - 1);
 `;
-const insertionCode = `// insertion
+const insertionCode = `// INSERTION
 for (i = 1; i < length; i++) {
   j = i;
   while (j > 0 && get(j - 1) > get(j)) {
@@ -51,6 +51,8 @@ type Swapping = {
   to: number;
 };
 
+type ButtonStatus = "START" | "PAUSE" | "RESTART";
+
 let ascendingTextArea: HTMLTextAreaElement;
 let descendingTextArea: HTMLTextAreaElement;
 let startButton: HTMLButtonElement;
@@ -58,6 +60,10 @@ let ascendingSwapping: Swapping;
 let descendingSwapping: Swapping;
 let isStarting = false;
 let gaugeRatio: number;
+let ascendingCode: code.Code;
+let descendingCode: code.Code;
+let swappingInterval: number;
+let buttonStatus: ButtonStatus = "START";
 
 function onLoad() {
   new mdc.textField.MDCTextField(
@@ -71,18 +77,26 @@ function onLoad() {
   new mdc.ripple.MDCRipple(document.querySelector(".mdc-button"));
   startButton = document.querySelector("#start");
   startButton.addEventListener("click", onClickStart);
+  ascendingTextArea.addEventListener("input", reset);
+  descendingTextArea.addEventListener("input", reset);
   screen.init();
   update();
-  onClickStart();
 }
 
 function onClickStart() {
-  start();
+  switch (buttonStatus) {
+    case "START":
+      start();
+      changeButtonStatus("PAUSE");
+      break;
+    case "PAUSE":
+      pause();
+      break;
+    case "RESTART":
+      restart();
+      break;
+  }
 }
-
-let ascendingCode: code.Code;
-let descendingCode: code.Code;
-let swappingInterval: number;
 
 function start() {
   code.initData();
@@ -93,6 +107,22 @@ function start() {
   isStarting = true;
   swappingInterval = 10;
   gaugeRatio = 0.5;
+}
+
+function pause() {
+  isStarting = false;
+  changeButtonStatus("RESTART");
+}
+
+function restart() {
+  isStarting = true;
+  changeButtonStatus("PAUSE");
+}
+
+function reset() {
+  isStarting = false;
+  changeButtonStatus("START");
+  screen.clear();
 }
 
 function update() {
@@ -154,6 +184,7 @@ function update() {
   gaugeRatio = asc / (asc + dec);
   if (asc === 0 || dec === 0) {
     isStarting = false;
+    changeButtonStatus("START");
   }
   if (asc > 1 && dec > 1) {
     swappingInterval += (1 - swappingInterval) * 0.05;
@@ -178,4 +209,9 @@ function drawScreen() {
   screen.drawInstructions(5, ascendingCode.instructionHistory);
   screen.drawInstructions(190, descendingCode.instructionHistory);
   screen.drawNumberBoxes();
+}
+
+function changeButtonStatus(status: ButtonStatus) {
+  buttonStatus = status;
+  startButton.textContent = status;
 }
