@@ -9,12 +9,12 @@ type NumberBox = {
   sy: number;
 };
 
-let numberBoxes: NumberBox[];
-let context: CanvasRenderingContext2D;
-const size = { x: 280, y: 500 };
-const boxSize = { x: 27, y: 27 };
+export const size = { x: 280, y: 500 };
 export const ascendingColor = "#e91e63";
 export const descendingColor = "#3f51b5";
+const boxSize = { x: 27, y: 27 };
+let numberBoxes: NumberBox[];
+let context: CanvasRenderingContext2D;
 
 export function init() {
   const canvas: HTMLCanvasElement = document.querySelector("#canvas");
@@ -127,7 +127,11 @@ export function drawText(
 ) {
   context.fillStyle = color;
   setFontSize(size);
-  context.fillText(str, x, y);
+  let ly = y;
+  str.split("\n").forEach(l => {
+    context.fillText(l, x, ly);
+    ly += size;
+  });
 }
 
 export function drawGauge(ratio: number) {

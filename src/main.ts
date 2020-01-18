@@ -64,6 +64,7 @@ let ascendingCode: code.Code;
 let descendingCode: code.Code;
 let swappingInterval: number;
 let buttonStatus: ButtonStatus = "START";
+let errorCount: number;
 
 function onLoad() {
   new mdc.textField.MDCTextField(
@@ -107,6 +108,7 @@ function start() {
   isStarting = true;
   swappingInterval = 10;
   gaugeRatio = 0.5;
+  errorCount = 0;
 }
 
 function pause() {
@@ -173,16 +175,22 @@ function update() {
       to: descendingCode.swappingTo
     };
   }
-  if (ascendingCode.isTerminated) {
+  if (ascendingCode.hasError && descendingCode.hasError) {
+    errorCount++;
+  } else {
+    errorCount = 0;
+  }
+  console.log(errorCount);
+  if (ascendingCode.isTerminated || ascendingCode.hasError) {
     code.reset(ascendingCode);
   }
-  if (descendingCode.isTerminated) {
+  if (descendingCode.isTerminated || descendingCode.hasError) {
     code.reset(descendingCode);
   }
   const asc = code.countDataAscending();
   const dec = code.countDataAscending(true);
   gaugeRatio = asc / (asc + dec);
-  if (asc === 0 || dec === 0) {
+  if (asc === 0 || dec === 0 || errorCount > 10) {
     isStarting = false;
     changeButtonStatus("START");
   }
@@ -208,6 +216,24 @@ function drawScreen() {
   screen.drawGauge(gaugeRatio);
   screen.drawInstructions(5, ascendingCode.instructionHistory);
   screen.drawInstructions(190, descendingCode.instructionHistory);
+  if (ascendingCode.errorMessage.length > 0) {
+    screen.drawText(
+      ascendingCode.errorMessage.match(/(.{1,24})/g).join("\n"),
+      5,
+      400,
+      screen.ascendingColor,
+      11
+    );
+  }
+  if (descendingCode.errorMessage.length > 0) {
+    screen.drawText(
+      descendingCode.errorMessage.match(/(.{1,24})/g).join("\n"),
+      screen.size.x / 2,
+      400,
+      screen.ascendingColor,
+      11
+    );
+  }
   screen.drawNumberBoxes();
 }
 

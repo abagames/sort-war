@@ -28,6 +28,7 @@ export function countDataAscending(isDescending = false) {
 
 export type Code = {
   source: string;
+  name: string;
   isDescending: boolean;
   interpreter?: any;
   isSwapCalled: boolean;
@@ -36,12 +37,14 @@ export type Code = {
   isTerminated: boolean;
   instruction: string;
   instructionHistory: string[];
-  name: string;
+  hasError: boolean;
+  errorMessage: string;
 };
 
 export function getCode(source: string, isDescending = false): Code {
-  const code = {
+  const code: Code = {
     source,
+    name: isDescending ? "Player2" : "Player1",
     isDescending,
     isSwapCalled: false,
     swappingFrom: -1,
@@ -49,10 +52,14 @@ export function getCode(source: string, isDescending = false): Code {
     isTerminated: false,
     instruction: "",
     instructionHistory: [],
-    name: isDescending ? "Player2" : "Player1"
+    hasError: false,
+    errorMessage: ""
   };
   if (source.startsWith("//")) {
-    const name = source.substring(2, source.indexOf("\n")).trim();
+    const name = source
+      .substring(2, source.indexOf("\n"))
+      .trim()
+      .substr(0, 16);
     if (name.length > 0) {
       code.name = name;
     }
@@ -62,48 +69,66 @@ export function getCode(source: string, isDescending = false): Code {
 }
 
 export function reset(code: Code) {
-  code.isTerminated = false;
-  code.interpreter = new acorn_interpreter.Interpreter(
-    code.source,
-    (interpreter, scope) => {
-      function getData(i: number) {
-        return data[i];
-      }
-      function getDataInverse(i: number) {
-        return -data[i];
-      }
-      function swapData(i: number, j: number) {
-        if (i < 0 || i >= dataLength || j < 0 || j >= dataLength) {
-          throw `invalid params: swap(${i}, ${j})`;
+  try {
+    code.isTerminated = code.hasError = false;
+    code.interpreter = new acorn_interpreter.Interpreter(
+      code.source,
+      (interpreter, scope) => {
+        function getData(i: number) {
+          if (i < 0 || i >= dataLength) {
+            code.hasError = true;
+            code.errorMessage = `Invalid params: get(${i})`;
+          }
+          return data[i];
         }
-        const tmp = data[i];
-        data[i] = data[j];
-        data[j] = tmp;
-        code.isSwapCalled = true;
-        code.swappingFrom = i;
-        code.swappingTo = j;
+        function getDataInverse(i: number) {
+          if (i < 0 || i >= dataLength) {
+            code.hasError = true;
+            code.errorMessage = `Invalid params: get(${i})`;
+          }
+          return -data[i];
+        }
+        function swapData(i: number, j: number) {
+          if (i === j) {
+            return;
+          }
+          if (i < 0 || i >= dataLength || j < 0 || j >= dataLength) {
+            code.hasError = true;
+            code.errorMessage = `Invalid params: swap(${i}, ${j})`;
+            return;
+          }
+          const tmp = data[i];
+          data[i] = data[j];
+          data[j] = tmp;
+          code.isSwapCalled = true;
+          code.swappingFrom = i;
+          code.swappingTo = j;
+        }
+        interpreter.setProperty(
+          scope,
+          "get",
+          interpreter.createNativeFunction(
+            code.isDescending ? getDataInverse : getData
+          )
+        );
+        interpreter.setProperty(
+          scope,
+          "swap",
+          interpreter.createNativeFunction(swapData)
+        );
+        interpreter.setProperty(scope, "length", dataLength);
       }
-      interpreter.setProperty(
-        scope,
-        "get",
-        interpreter.createNativeFunction(
-          code.isDescending ? getDataInverse : getData
-        )
-      );
-      interpreter.setProperty(
-        scope,
-        "swap",
-        interpreter.createNativeFunction(swapData)
-      );
-      interpreter.setProperty(scope, "length", dataLength);
-    }
-  );
+    );
+  } catch (e) {
+    code.hasError = true;
+    code.errorMessage = e.toString();
+  }
 }
 
 export function step(code: Code) {
   code.instruction = "";
   code.isSwapCalled = false;
-  if (code.isTerminated) {
+  if (code.isTerminated || code.hasError || code.interpreter == null) {
     return false;
   }
   if (code.interpreter.stateStack.length > 0) {
@@ -115,9 +140,14 @@ export function step(code: Code) {
       -instructionHistoryLength
     );
   }
-  if (!code.interpreter.step()) {
-    code.isTerminated = true;
-    return false;
+  try {
+    if (!code.interpreter.step()) {
+      code.isTerminated = true;
+      return false;
+    }
+  } catch (e) {
+    code.hasError = true;
+    code.errorMessage = e.toString();
   }
   return true;
 }
