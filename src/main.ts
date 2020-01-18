@@ -152,10 +152,10 @@ function update() {
   if (asc === 0 || dec === 0) {
     isStarting = false;
   }
-  if (asc + dec > 1) {
+  if (asc > 1 && dec > 1) {
     swappingInterval += (1 - swappingInterval) * 0.05;
   } else {
-    swappingInterval += (10 - swappingInterval) * 0.05;
+    swappingInterval += (10 - swappingInterval) * 0.2;
   }
   screen.setData();
   screen.update();

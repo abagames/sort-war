@@ -2,7 +2,7 @@ import acorn_interpreter from "./acorn_interpreter";
 (window as any).acorn = acorn_interpreter;
 import { range } from "./util";
 
-export const dataLength = 16;
+export const dataLength = 10;
 export let data: number[];
 
 export function initData() {
