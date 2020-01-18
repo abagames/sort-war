@@ -72,6 +72,7 @@ function onLoad() {
   startButton.addEventListener("click", onClickStart);
   screen.init();
   update();
+  onClickStart();
 }
 
 function onClickStart() {
@@ -80,6 +81,7 @@ function onClickStart() {
 
 let ascendingCode: code.Code;
 let descendingCode: code.Code;
+let swappingInterval: number;
 
 function start() {
   code.initData();
@@ -88,6 +90,7 @@ function start() {
   ascendingCode = code.getCode(ascendingTextArea.value);
   descendingCode = code.getCode(descendingTextArea.value, true);
   isStarting = true;
+  swappingInterval = 10;
 }
 
 function update() {
@@ -99,7 +102,7 @@ function update() {
     screen.swapData(
       ascendingSwapping.from,
       ascendingSwapping.to,
-      ascendingSwapping.ticks / screen.swappingInterval,
+      ascendingSwapping.ticks / swappingInterval,
       false
     );
     screen.update();
@@ -110,8 +113,8 @@ function update() {
     screen.swapData(
       descendingSwapping.from,
       descendingSwapping.to,
-      descendingSwapping.ticks / screen.swappingInterval,
-      false
+      descendingSwapping.ticks / swappingInterval,
+      true
     );
     screen.update();
     descendingSwapping.ticks--;
@@ -126,14 +129,14 @@ function update() {
   }
   if (ascendingCode.isSwapCalled) {
     ascendingSwapping = {
-      ticks: screen.swappingInterval,
+      ticks: swappingInterval,
       from: ascendingCode.swappingFrom,
       to: ascendingCode.swappingTo
     };
   }
   if (descendingCode.isSwapCalled) {
     descendingSwapping = {
-      ticks: screen.swappingInterval,
+      ticks: swappingInterval,
       from: descendingCode.swappingFrom,
       to: descendingCode.swappingTo
     };
@@ -148,6 +151,11 @@ function update() {
   const dec = code.countDataAscending(true);
   if (asc === 0 || dec === 0) {
     isStarting = false;
+  }
+  if (asc + dec > 1) {
+    swappingInterval += (1 - swappingInterval) * 0.05;
+  } else {
+    swappingInterval += (10 - swappingInterval) * 0.05;
   }
   screen.setData();
   screen.update();
