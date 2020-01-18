@@ -1,4 +1,5 @@
 import * as code from "./code";
+import * as screen from "./screen";
 declare const mdc: any;
 
 const quickCode = `// quick
@@ -44,9 +45,18 @@ for (i = 1; i < length; i++) {
 
 window.addEventListener("load", onLoad);
 
+type Swapping = {
+  ticks: number;
+  from: number;
+  to: number;
+};
+
 let ascendingTextArea: HTMLTextAreaElement;
 let descendingTextArea: HTMLTextAreaElement;
 let startButton: HTMLButtonElement;
+let ascendingSwapping: Swapping;
+let descendingSwapping: Swapping;
+let isStarting = false;
 
 function onLoad() {
   new mdc.textField.MDCTextField(
@@ -60,6 +70,8 @@ function onLoad() {
   new mdc.ripple.MDCRipple(document.querySelector(".mdc-button"));
   startButton = document.querySelector("#start");
   startButton.addEventListener("click", onClickStart);
+  screen.init();
+  update();
 }
 
 function onClickStart() {
@@ -71,25 +83,72 @@ let descendingCode: code.Code;
 
 function start() {
   code.initData();
+  ascendingSwapping = { ticks: 0, from: -1, to: -1 };
+  descendingSwapping = { ticks: 0, from: -1, to: -1 };
   ascendingCode = code.getCode(ascendingTextArea.value);
   descendingCode = code.getCode(descendingTextArea.value, true);
-  for (let i = 0; i <= 1000000; i++) {
-    if (!code.step(ascendingCode)) {
-      code.reset(ascendingCode);
-    }
-    if (!code.step(descendingCode)) {
-      code.reset(descendingCode);
-    }
-    const asc = code.countDataAscending();
-    const dec = code.countDataAscending(true);
-    if (asc === 0 || dec === 0) {
-      console.log(`${asc} ${dec} ${i}`);
-      console.log(code.data);
+  isStarting = true;
+}
+
+function update() {
+  requestAnimationFrame(update);
+  if (!isStarting) {
+    return;
+  }
+  if (ascendingSwapping.ticks > 0) {
+    screen.swapData(
+      ascendingSwapping.from,
+      ascendingSwapping.to,
+      ascendingSwapping.ticks / screen.swappingInterval,
+      false
+    );
+    screen.update();
+    ascendingSwapping.ticks--;
+    return;
+  }
+  if (descendingSwapping.ticks > 0) {
+    screen.swapData(
+      descendingSwapping.from,
+      descendingSwapping.to,
+      descendingSwapping.ticks / screen.swappingInterval,
+      false
+    );
+    screen.update();
+    descendingSwapping.ticks--;
+    return;
+  }
+  for (let i = 0; i < 256; i++) {
+    code.step(ascendingCode);
+    code.step(descendingCode);
+    if (ascendingCode.isSwapCalled || descendingCode.isSwapCalled) {
       break;
     }
-    if (i % 100000 === 0) {
-      console.log(`${asc} ${dec} ${i}`);
-      console.log(code.data);
-    }
   }
+  if (ascendingCode.isSwapCalled) {
+    ascendingSwapping = {
+      ticks: screen.swappingInterval,
+      from: ascendingCode.swappingFrom,
+      to: ascendingCode.swappingTo
+    };
+  }
+  if (descendingCode.isSwapCalled) {
+    descendingSwapping = {
+      ticks: screen.swappingInterval,
+      from: descendingCode.swappingFrom,
+      to: descendingCode.swappingTo
+    };
+  }
+  if (ascendingCode.isTerminated) {
+    code.reset(ascendingCode);
+  }
+  if (descendingCode.isTerminated) {
+    code.reset(descendingCode);
+  }
+  const asc = code.countDataAscending();
+  const dec = code.countDataAscending(true);
+  if (asc === 0 || dec === 0) {
+    isStarting = false;
+  }
+  screen.setData();
+  screen.update();
 }

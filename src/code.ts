@@ -9,6 +9,9 @@ export function initData() {
   data = range(dataLength).map(() =>
     Math.floor(Math.random() * dataLength * 2 + 1)
   );
+  if (countDataAscending() === 0 && countDataAscending(true) === 0) {
+    data = range(dataLength).map(i => i + 1);
+  }
 }
 
 export function countDataAscending(isDescending = false) {
@@ -26,15 +29,27 @@ export type Code = {
   source: string;
   isDescending: boolean;
   interpreter?: any;
+  isSwapCalled: boolean;
+  swappingFrom: number;
+  swappingTo: number;
+  isTerminated: boolean;
 };
 
 export function getCode(source: string, isDescending = false): Code {
-  const code = { source, isDescending };
+  const code = {
+    source,
+    isDescending,
+    isSwapCalled: false,
+    swappingFrom: -1,
+    swappingTo: -1,
+    isTerminated: false
+  };
   reset(code);
   return code;
 }
 
 export function reset(code: Code) {
+  code.isTerminated = false;
   code.interpreter = new acorn_interpreter.Interpreter(
     code.source,
     (interpreter, scope) => {
@@ -51,6 +66,9 @@ export function reset(code: Code) {
         const tmp = data[i];
         data[i] = data[j];
         data[j] = tmp;
+        code.isSwapCalled = true;
+        code.swappingFrom = i;
+        code.swappingTo = j;
       }
       interpreter.setProperty(
         scope,
@@ -70,5 +88,13 @@ export function reset(code: Code) {
 }
 
 export function step(code: Code) {
-  return code.interpreter.step();
+  if (code.isTerminated) {
+    return false;
+  }
+  code.isSwapCalled = false;
+  if (!code.interpreter.step()) {
+    code.isTerminated = true;
+    return false;
+  }
+  return true;
 }
