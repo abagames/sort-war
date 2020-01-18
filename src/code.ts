@@ -36,6 +36,7 @@ export type Code = {
   isTerminated: boolean;
   instruction: string;
   instructionHistory: string[];
+  name: string;
 };
 
 export function getCode(source: string, isDescending = false): Code {
@@ -47,8 +48,15 @@ export function getCode(source: string, isDescending = false): Code {
     swappingTo: -1,
     isTerminated: false,
     instruction: "",
-    instructionHistory: []
+    instructionHistory: [],
+    name: isDescending ? "Player2" : "Player1"
   };
+  if (source.startsWith("//")) {
+    const name = source.substring(2, source.indexOf("\n")).trim();
+    if (name.length > 0) {
+      code.name = name;
+    }
+  }
   reset(code);
   return code;
 }

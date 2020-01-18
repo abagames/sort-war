@@ -57,6 +57,7 @@ let startButton: HTMLButtonElement;
 let ascendingSwapping: Swapping;
 let descendingSwapping: Swapping;
 let isStarting = false;
+let gaugeRatio: number;
 
 function onLoad() {
   new mdc.textField.MDCTextField(
@@ -91,6 +92,7 @@ function start() {
   descendingCode = code.getCode(descendingTextArea.value, true);
   isStarting = true;
   swappingInterval = 10;
+  gaugeRatio = 0.5;
 }
 
 function update() {
@@ -149,6 +151,7 @@ function update() {
   }
   const asc = code.countDataAscending();
   const dec = code.countDataAscending(true);
+  gaugeRatio = asc / (asc + dec);
   if (asc === 0 || dec === 0) {
     isStarting = false;
   }
@@ -163,6 +166,15 @@ function update() {
 
 function drawScreen() {
   screen.clear();
+  screen.drawText(ascendingCode.name, 5, 25, screen.ascendingColor, 16);
+  screen.drawText(
+    descendingCode.name,
+    270 - descendingCode.name.length * 8,
+    25,
+    screen.descendingColor,
+    16
+  );
+  screen.drawGauge(gaugeRatio);
   screen.drawInstructions(5, ascendingCode.instructionHistory);
   screen.drawInstructions(190, descendingCode.instructionHistory);
   screen.drawNumberBoxes();
