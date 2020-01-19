@@ -58,7 +58,7 @@ let descendingTextArea: HTMLTextAreaElement;
 let startButton: HTMLButtonElement;
 let ascendingSwapping: Swapping;
 let descendingSwapping: Swapping;
-let isStarting = false;
+let isRunning = false;
 let gaugeRatio: number;
 let ascendingCode: code.Code;
 let descendingCode: code.Code;
@@ -105,31 +105,31 @@ function start() {
   descendingSwapping = { ticks: 0, from: -1, to: -1 };
   ascendingCode = code.getCode(ascendingTextArea.value);
   descendingCode = code.getCode(descendingTextArea.value, true);
-  isStarting = true;
+  isRunning = true;
   swappingInterval = 10;
   gaugeRatio = 0.5;
   errorCount = 0;
 }
 
 function pause() {
-  isStarting = false;
+  isRunning = false;
   changeButtonStatus("RESTART");
 }
 
 function restart() {
-  isStarting = true;
+  isRunning = true;
   changeButtonStatus("PAUSE");
 }
 
 function reset() {
-  isStarting = false;
+  isRunning = false;
   changeButtonStatus("START");
   screen.clear();
 }
 
 function update() {
   requestAnimationFrame(update);
-  if (!isStarting) {
+  if (!isRunning) {
     return;
   }
   if (ascendingSwapping.ticks > 0) {
@@ -191,7 +191,7 @@ function update() {
   const dec = code.countDataAscending(true);
   gaugeRatio = asc / (asc + dec);
   if (asc === 0 || dec === 0 || errorCount > 10) {
-    isStarting = false;
+    isRunning = false;
     changeButtonStatus("START");
   }
   if (asc > 1 && dec > 1) {

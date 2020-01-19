@@ -15,12 +15,40 @@ export const descendingColor = "#3f51b5";
 const boxSize = { x: 27, y: 27 };
 let numberBoxes: NumberBox[];
 let context: CanvasRenderingContext2D;
+let latestMedia: MediaQueryList;
+
+type CallByDppxParametersMap = { [T in "clearRect" | "fillRect" | "fillText"]: Parameters<CanvasRenderingContext2D[T]> };
+
+function multiplyByDppx<T>(x: T) {
+  return typeof x == "number" ? x * devicePixelRatio : x;
+}
+
+function callByDppx<T extends keyof CallByDppxParametersMap>(context: CanvasRenderingContext2D, key: T, ...args: CallByDppxParametersMap[T]) {
+  switch (key) {
+    case "clearRect": {
+      const [x, y, w, h] = args as CallByDppxParametersMap["clearRect"];
+      return context.clearRect(multiplyByDppx(x), multiplyByDppx(y), multiplyByDppx(w), multiplyByDppx(h));
+    }
+    case "fillRect": {
+      const [x, y, w, h] = args as CallByDppxParametersMap["fillRect"];
+      return context.fillRect(multiplyByDppx(x), multiplyByDppx(y), multiplyByDppx(w), multiplyByDppx(h));
+    }
+    case "fillText": {
+      const [text, x, y, maxWidth] = args as CallByDppxParametersMap["fillText"];
+      return context.fillText(text, multiplyByDppx(x), multiplyByDppx(y), multiplyByDppx(maxWidth))
+    }
+  }
+}
 
 export function init() {
   const canvas: HTMLCanvasElement = document.querySelector("#canvas");
-  canvas.width = size.x;
-  canvas.height = size.y;
+  canvas.width = multiplyByDppx(size.x);
+  canvas.height = multiplyByDppx(size.y);
   context = canvas.getContext("2d");
+  if (latestMedia) {
+    latestMedia.removeEventListener("change", init);
+  }
+  (latestMedia = matchMedia(`(resolution:${devicePixelRatio}dppx)`)).addEventListener("change", init);
 }
 
 export function setData() {
@@ -56,7 +84,7 @@ export function swapData(
 }
 
 export function clear() {
-  context.clearRect(0, 0, size.x, size.y);
+  callByDppx(context, "clearRect", 0, 0, size.x, size.y);
 }
 
 export function drawInstructions(x: number, instructions: string[]) {
@@ -64,7 +92,7 @@ export function drawInstructions(x: number, instructions: string[]) {
   context.fillStyle = "#616161";
   let y = 80;
   instructions.forEach(inst => {
-    context.fillText(inst.substr(0, 16), x, y);
+    callByDppx(context, "fillText", inst.substr(0, 16), x, y);
     y += 15;
   });
 }
@@ -75,7 +103,7 @@ export function drawNumberBoxes() {
   let lc: string;
   numberBoxes.forEach(nb => {
     context.fillStyle = nb.color;
-    context.fillRect(
+    callByDppx(context, "fillRect",
       size.x / 2 - boxSize.x / 2 + nb.sx,
       nb.y + nb.sy,
       boxSize.x,
@@ -84,7 +112,7 @@ export function drawNumberBoxes() {
     if (nb.color === ascendingColor) {
       lc = ascendingColor;
       lps.push({ x: size.x / 2 - boxSize.x * 1.5, y: nb.y + boxSize.y / 2 });
-      context.fillRect(
+      callByDppx(context, "fillRect",
         size.x / 2 - boxSize.x * 1.5,
         nb.y + boxSize.y / 2 - 1,
         boxSize.x,
@@ -94,7 +122,7 @@ export function drawNumberBoxes() {
     if (nb.color === descendingColor) {
       lc = descendingColor;
       lps.push({ x: size.x / 2 + boxSize.x * 1.5, y: nb.y + boxSize.y / 2 });
-      context.fillRect(
+      callByDppx(context, "fillRect",
         size.x / 2 + boxSize.x * 0.5,
         nb.y + boxSize.y / 2 - 1,
         boxSize.x,
@@ -102,7 +130,7 @@ export function drawNumberBoxes() {
       );
     }
     context.fillStyle = "#ffffff";
-    context.fillRect(
+    callByDppx(context, "fillRect",
       size.x / 2 - boxSize.x / 2 + 3 + nb.sx,
       nb.y + 3 + nb.sy,
       boxSize.x - 6,
@@ -110,11 +138,11 @@ export function drawNumberBoxes() {
     );
     const v = nb.value.toString();
     context.fillStyle = "#616161";
-    context.fillText(v, size.x / 2 - (v.length - 1) * 10, nb.y + nb.oy + 20);
+    callByDppx(context, "fillText", v, size.x / 2 - (v.length - 1) * 10, nb.y + nb.oy + 20);
   });
   if (lps.length > 0) {
     context.fillStyle = lc;
-    context.fillRect(lps[0].x - 1, lps[0].y - 1, 3, lps[1].y - lps[0].y + 3);
+    callByDppx(context, "fillRect", lps[0].x - 1, lps[0].y - 1, 3, lps[1].y - lps[0].y + 3);
   }
 }
 
@@ -129,18 +157,18 @@ export function drawText(
   setFontSize(size);
   let ly = y;
   str.split("\n").forEach(l => {
-    context.fillText(l, x, ly);
+    callByDppx(context, "fillText", l, x, ly);
     ly += size;
   });
 }
 
 export function drawGauge(ratio: number) {
   context.fillStyle = ascendingColor;
-  context.fillRect(5, 30, ratio * 270, 10);
+  callByDppx(context, "fillRect", 5, 30, ratio * 270, 10);
   context.fillStyle = descendingColor;
-  context.fillRect(ratio * 270, 30, 270 - ratio * 270, 10);
+  callByDppx(context, "fillRect", ratio * 270, 30, 270 - ratio * 270, 10);
 }
 
 function setFontSize(v: number) {
-  context.font = `${v}px Inconsolata`;
+  context.font = `${multiplyByDppx(v)}px Inconsolata`;
 }
