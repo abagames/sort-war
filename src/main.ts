@@ -58,7 +58,6 @@ let descendingTextArea: HTMLTextAreaElement;
 let startButton: HTMLButtonElement;
 let ascendingSwapping: Swapping;
 let descendingSwapping: Swapping;
-let isInitalized = false;
 let isRunning = false;
 let gaugeRatio: number;
 let ascendingCode: code.Code;
@@ -106,7 +105,6 @@ function start() {
   descendingSwapping = { ticks: 0, from: -1, to: -1 };
   ascendingCode = code.getCode(ascendingTextArea.value);
   descendingCode = code.getCode(descendingTextArea.value, true);
-  isInitalized = true;
   isRunning = true;
   swappingInterval = 10;
   gaugeRatio = 0.5;
@@ -131,7 +129,7 @@ function reset() {
 
 function update() {
   requestAnimationFrame(update);
-  if (!isInitalized) {
+  if (!isRunning) {
     return;
   }
   if (ascendingSwapping.ticks > 0) {
@@ -156,25 +154,23 @@ function update() {
     descendingSwapping.ticks--;
     return;
   }
-  if (isRunning) {
-    for (let i = 0; i < 256; i++) {
-      code.step(ascendingCode);
-      code.step(descendingCode);
-      if (ascendingCode.isSwapCalled || descendingCode.isSwapCalled) {
-        break;
-      }
+  for (let i = 0; i < 256; i++) {
+    code.step(ascendingCode);
+    code.step(descendingCode);
+    if (ascendingCode.isSwapCalled || descendingCode.isSwapCalled) {
+      break;
     }
   }
   if (ascendingCode.isSwapCalled) {
     ascendingSwapping = {
-      ticks: isRunning ? swappingInterval : 0,
+      ticks: swappingInterval,
       from: ascendingCode.swappingFrom,
       to: ascendingCode.swappingTo
     };
   }
   if (descendingCode.isSwapCalled) {
     descendingSwapping = {
-      ticks: isRunning ? swappingInterval : 0,
+      ticks: swappingInterval,
       from: descendingCode.swappingFrom,
       to: descendingCode.swappingTo
     };
