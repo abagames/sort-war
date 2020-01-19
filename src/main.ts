@@ -180,7 +180,6 @@ function update() {
   } else {
     errorCount = 0;
   }
-  console.log(errorCount);
   if (ascendingCode.isTerminated || ascendingCode.hasError) {
     code.reset(ascendingCode);
   }
